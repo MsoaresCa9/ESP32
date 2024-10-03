@@ -58,6 +58,9 @@ Monte o circuito conforme o diagrama abaixo:
 - **ESP32**:
   - Alimentado por **USB** ou fonte de **3.3V**.
 
+  #Imagem do Diagrama
+  https://wokwi.com/projects/new/esp32
+
 ## Configuração do Ambiente
 
 ### Passo 1: Configurando a IDE do Arduino para ESP32
@@ -92,88 +95,199 @@ Você pode configurar outros tópicos conforme necessário.
 
 ## Código Fonte
 
-O código a seguir captura os dados do sensor DHT11 e do LDR, publica os dados via MQTT e permite a leitura e controle pelo aplicativo MyMQTT.
 
-```cpp
+
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <DHT.h>
+#include "DHT.h"
 
-#define DHTPIN 4      // Pin where the DHT11 is connected
-#define DHTTYPE DHT11 // Define the type of DHT sensor
-#define LDRPIN 34     // Pin for LDR sensor
-#define LEDPIN 2      // Pin for LED control
+// Uncomment one of the lines bellow for whatever DHT sensor type you're using!
+#define DHTTYPE DHT22   // DHT 22
+//#define DHTTYPE DHT21   // DHT 21 (AM2301)
+//#define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
 
-const char* ssid = "Seu_SSID";      // Substitua pelo nome da sua rede WiFi
-const char* password = "Sua_Senha"; // Substitua pela senha do WiFi
-const char* mqtt_server = "test.mosquitto.org";
+// Change the credentials below, so your ESP8266 connects to your router
+const char* ssid = "Wokwi-GUEST";
+const char* password = "";
+//  SSID and Password WiFi 
 
+// Change the variable to your Raspberry Pi IP address, so it connects to your MQTT broker
+const char* mqtt_server = "mqtt-dashboard.com";
+//   Broke
+
+// Initializes the espClient. You should change the espClient name if you have multiple ESPs running in your home automation system
 WiFiClient espClient;
 PubSubClient client(espClient);
-DHT dht(DHTPIN, DHTTYPE);
 
-void setup() {
-  Serial.begin(115200);
-  setup_wifi();
-  client.setServer(mqtt_server, 1883);
-  dht.begin();
-  pinMode(LEDPIN, OUTPUT); // Define o LED como saída
-}
+// DHT Sensor - GPIO 5 = D1 on ESP-12E NodeMCU board
+const int DHTPin = 5;
+// Pin  D1 ESP8266  Sensor DHT11
 
+// Lamp - LED - GPIO 4 = D2 on ESP-12E NodeMCU board
+const int lamp = 4;
+// Pin D2 ESP8266   LED
+
+// Initialize DHT sensor.
+DHT dht(DHTPin, DHTTYPE);
+
+// Timers auxiliar variables
+long now = millis();
+long lastMeasure = 0;
+
+// Don't change the function below. This functions connects your ESP8266 to your router
 void setup_wifi() {
   delay(10);
-  Serial.println("Conectando ao WiFi...");
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
   WiFi.begin(ssid, password);
-
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-
-  Serial.println("WiFi conectado.");
+  Serial.println("");
+  Serial.print("WiFi connected - ESP IP address: ");
+  Serial.println(WiFi.localIP());
 }
 
+// This functions is executed when some device publishes a message to a topic that your ESP8266 is subscribed to
+// Change the function below to add logic to your program, so when a device publishes a message to a topic that 
+// your ESP8266 is subscribed you can actually do something
+void callback(String topic, byte* message, unsigned int length) {
+  Serial.print("Message arrived on topic: ");
+  Serial.print(topic);
+  Serial.print(". Message: ");
+  String messageTemp;
+  
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)message[i]);
+    messageTemp += (char)message[i];
+  }
+  Serial.println();
+
+  // Feel free to add more if statements to control more GPIOs with MQTT
+
+  // If a message is received on the topic room/lamp, you check if the message is either on or off. Turns the lamp GPIO according to the message
+  if(topic=="room/lamp"){
+      Serial.print("Changing Room lamp to ");
+      if(messageTemp == "on"){
+        digitalWrite(lamp, HIGH);
+        Serial.print("On");
+      }
+      else if(messageTemp == "off"){
+        digitalWrite(lamp, LOW);
+        Serial.print("Off");
+      }
+  }
+  Serial.println();
+}
+
+// This functions reconnects your ESP8266 to your MQTT broker
+// Change the function below if you want to subscribe to more topics with your ESP8266 
 void reconnect() {
+  // Loop until we're reconnected
   while (!client.connected()) {
-    Serial.print("Tentando conectar ao MQTT...");
-    if (client.connect("ESP32Client")) {
-      Serial.println("Conectado ao MQTT!");
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    /*
+     YOU MIGHT NEED TO CHANGE THIS LINE, IF YOU'RE HAVING PROBLEMS WITH MQTT MULTIPLE CONNECTIONS
+     To change the ESP device ID, you will have to give a new name to the ESP8266.
+     Here's how it looks:
+       if (client.connect("ESP8266Client")) {
+     You can do it like this:
+       if (client.connect("ESP1_Office")) {
+     Then, for the other ESP:
+       if (client.connect("ESP2_Garage")) {
+      That should solve your MQTT multiple connections problem
+    */
+    if (client.connect("ESPClient")) {
+      Serial.println("connected");  
+      // Subscribe or resubscribe to a topic
+      // You can subscribe to more topics (to control more LEDs in this example)
+      client.subscribe("room/lamp");
     } else {
-      Serial.print("Falha ao conectar. Estado: ");
+      Serial.print("failed, rc=");
       Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
       delay(5000);
     }
   }
 }
 
+// The setup function sets your ESP GPIOs to Outputs, starts the serial communication at a baud rate of 115200
+// Sets your mqtt broker and sets the callback function
+// The callback function is what receives messages and actually controls the LEDs
+void setup() {
+  pinMode(lamp, OUTPUT);
+  
+  dht.begin();
+  
+  Serial.begin(115200);
+  setup_wifi();
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
+
+}
+
+// For this project, you don't need to change anything in the loop function. Basically it ensures that you ESP is connected to your broker
 void loop() {
+
   if (!client.connected()) {
     reconnect();
   }
-  client.loop();
+  if(!client.loop())
+    client.connect("ESPClient");
 
-  // Captura e publica os dados do DHT11
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
-  if (isnan(h) || isnan(t)) {
-    Serial.println("Falha ao ler o DHT11");
-    return;
+  now = millis();
+  // Publishes new temperature and humidity every 30 seconds
+  if (now - lastMeasure > 30000) {
+    lastMeasure = now;
+    // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+    float h = dht.readHumidity();
+    // Read temperature as Celsius (the default)
+    float t = dht.readTemperature();
+    // Read temperature as Fahrenheit (isFahrenheit = true)
+    float f = dht.readTemperature(true);
+
+    // Check if any reads failed and exit early (to try again).
+    if (isnan(h) || isnan(t) || isnan(f)) {
+      Serial.println("Failed to read from DHT sensor!");
+      return;
+    }
+
+    // Computes temperature values in Celsius
+    float hic = dht.computeHeatIndex(t, h, false);
+    static char temperatureTemp[7];
+    dtostrf(hic, 6, 2, temperatureTemp);
+    
+    // Uncomment to compute temperature values in Fahrenheit 
+    // float hif = dht.computeHeatIndex(f, h);
+    // static char temperatureTemp[7];
+    // dtostrf(hif, 6, 2, temperatureTemp);
+    
+    static char humidityTemp[7];
+    dtostrf(h, 6, 2, humidityTemp);
+
+    // Publishes Temperature and Humidity values
+    client.publish("room/ESP32temperatura", temperatureTemp);
+    client.publish("room/ESP32umidade", humidityTemp);
+    
+    Serial.print("Humidity: ");
+    Serial.print(h);
+    Serial.print(" %\t Temperature: ");
+    Serial.print(t);
+    Serial.print(" *C ");
+    Serial.print(f);
+    Serial.print(" *F\t Heat index: ");
+    Serial.print(hic);
+    Serial.println(" *C ");
+    // Serial.print(hif);
+    // Serial.println(" *F");
   }
-
-  String payload = "Temp: " + String(t) + " C, Umidade: " + String(h) + "%";
-  client.publish("iot/esp32/dht11", payload.c_str());
-  Serial.println(payload);
-
-  // Captura e publica os dados do LDR
-  int ldrValue = analogRead(LDRPIN);
-  String ldrPayload = "Luminosidade: " + String(ldrValue);
-  client.publish("iot/esp32/ldr", ldrPayload.c_str());
-  Serial.println(ldrPayload);
-
-  delay(2000); // Atraso de 2 segundos entre leituras
-}
-```
-
+} /*****
+*****/
 ## Como ver o host para o MQTT
 
 Para visualizar e identificar o **host** (endereço IP ou nome de domínio) que você deve inserir no aplicativo **MyMQTT** para se conectar ao broker MQTT, siga estas orientações de acordo com o ambiente em que o broker está rodando:
@@ -228,7 +342,7 @@ O **host** é o **endereço IP** ou o **nome de domínio** do servidor onde o br
    - **Conecte-se** ao broker MQTT.
    - Insira o **host** (endereço IP ou nome de domínio do broker MQTT).
    - Especifique a **porta 1883** (padrão para comunicação MQTT).
-   - Assine os tópicos `iot/esp32/dht11` e `iot/esp32/ldr` para visualizar os dados enviados pelo ESP32.
+   - Assine os tópicos `room/ESP32temperatura` e `room/ESP32umidade` para visualizar os dados enviados pelo ESP32.
    - Para **controlar o LED**, envie comandos de ligar/desligar para o tópico `iot/esp32/led` utilizando os comandos MQTT.
 
 ## Resultados

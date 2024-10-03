@@ -58,8 +58,9 @@ Monte o circuito conforme o diagrama abaixo:
 - **ESP32**:
   - Alimentado por **USB** ou fonte de **3.3V**.
 
-  #Imagem do Diagrama
-  https://wokwi.com/projects/new/esp32
+**Imagem do Diagrama**
+https://wokwi.com/projects/410770017515206657
+  
 
 ## Configuração do Ambiente
 

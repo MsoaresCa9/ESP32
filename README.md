@@ -2,7 +2,7 @@
 
 ## Descrição do Projeto
 
-Este projeto demonstra a captura de dados de sensores ambientais, utilizando o sensor de temperatura e umidade DHT11 e o sensor de luminosidade LDR, com um ESP32. Os dados capturados são enviados via protocolo MQTT e podem ser lidos e controlados por um aplicativo MQTT, como o MyMQTT. Além disso, o projeto inclui funções de controle remoto de um LED (ligar e desligar) via MQTT.
+Este projeto demonstra a captura de dados de sensores ambientais, utilizando o sensor de temperatura e umidade **DHT11** e o sensor de luminosidade **LDR**, com um **ESP32**. Os dados capturados são enviados via protocolo **MQTT** e podem ser lidos e controlados por um aplicativo MQTT, como o **MyMQTT**. Além disso, o projeto inclui funções de controle remoto de um **LED** (ligar e desligar) via MQTT.
 
 ## Tabela de Conteúdo
 1. [Pré-requisitos](#pré-requisitos)
@@ -10,58 +10,60 @@ Este projeto demonstra a captura de dados de sensores ambientais, utilizando o s
 3. [Configuração do Ambiente](#configuração-do-ambiente)
 4. [Configuração MQTT](#configuração-mqtt)
 5. [Código Fonte](#código-fonte)
-6. [Execução do Projeto](#execução-do-projeto)
-7. [Resultados](#resultados)
-8. [Leitura de Tópico MQTT](#leitura-tópico-mqtt)
-9. [Controle do LED (Liga/Desliga) via MQTT](#controle-led-mqtt)
-10. [Código para Solicitação de Dados Temporais via Método GET HTTP](#codigo-solicitacao-dados)
-11. [Referências](#referências)
+6. [Como ver o host para o MQTT](#como-ver-o-host-para-o-mqtt)
+7. [Execução do Projeto](#execução-do-projeto)
+8. [Resultados](#resultados)
+9. [Leitura de Tópico MQTT](#leitura-de-tópico-mqtt)
+10. [Controle do LED (Liga/Desliga) via MQTT](#controle-do-led-ligadesliga-via-mqtt)
+11. [Código para Solicitação de Dados Temporais via Método GET HTTP](#código-para-solicitação-de-dados-temporais-via-método-get-http)
+12. [Referências](#referências)
+13. [Integrantes](#integrantes)
 
 ## Pré-requisitos
 
 Antes de começar, você precisará dos seguintes componentes:
 
 ### Hardware:
-- ESP32
-- Sensor DHT11 (Temperatura e Umidade)
-- Sensor LDR (Resistor Dependente de Luz)
-- LED com Resistor (220Ω)
-- Resistores de 10KΩ e 220Ω (para o LDR)
-- Protoboard e Jumpers
+- **ESP32**
+- **Sensor DHT11** (Temperatura e Umidade)
+- **Sensor LDR** (Resistor Dependente de Luz)
+- **LED** com Resistor (220Ω)
+- Resistores de **10KΩ** e **220Ω** (para o LDR)
+- **Protoboard** e **Jumpers**
 
 ### Software:
-- Arduino IDE (com suporte ao ESP32)
-- Biblioteca "DHT sensor library" (Adafruit)
-- Biblioteca "PubSubClient" (para MQTT)
-- Aplicativo MyMQTT (disponível para Android)
-- Python (com `paho-mqtt` e `requests`)
+- **Arduino IDE** (com suporte ao ESP32)
+- Biblioteca **DHT sensor library** (Adafruit)
+- Biblioteca **PubSubClient** (para MQTT)
+- Aplicativo **MyMQTT** (disponível para Android)
+- **Python** (com `paho-mqtt` e `requests`)
 
 ## Diagrama de Circuito
 
 Monte o circuito conforme o diagrama abaixo:
 
 ### Conexões:
-- **DHT11**: 
-  - VCC -> 3.3V
-  - GND -> GND
-  - DATA -> GPIO 4 (ESP32)
-  
+- **DHT11**:
+  - **VCC** -> 3.3V
+  - **GND** -> GND
+  - **DATA** -> GPIO 4 (ESP32)
+
 - **LDR**:
-  - Um lado do LDR conectado ao 3.3V e o outro ao GPIO 34, com um resistor de 10KΩ conectado entre o GPIO 34 e o GND.
+  - Um lado do **LDR** conectado ao 3.3V e o outro ao **GPIO 34**, com um resistor de **10KΩ** conectado entre o GPIO 34 e o GND.
 
 - **LED**:
-  - O ânodo do LED vai para o GPIO 2 (ESP32).
-  - O cátodo do LED vai para GND com um resistor de 220Ω em série.
+  - O ânodo do **LED** vai para o **GPIO 2** (ESP32).
+  - O cátodo do LED vai para **GND** com um resistor de **220Ω** em série.
 
-- **ESP32**: 
-  - Alimentado por USB ou fonte de 3.3V.
+- **ESP32**:
+  - Alimentado por **USB** ou fonte de **3.3V**.
 
 ## Configuração do Ambiente
 
 ### Passo 1: Configurando a IDE do Arduino para ESP32
-1. Abra a IDE Arduino.
+1. Abra a **IDE Arduino**.
 2. Vá em **Arquivo > Preferências**.
-3. Adicione o seguinte URL no campo "URLs adicionais para gerenciadores de placas":
+3. Adicione o seguinte URL no campo **"URLs adicionais para gerenciadores de placas"**:
    ```
    https://dl.espressif.com/dl/package_esp32_index.json
    ```
@@ -77,7 +79,7 @@ Na IDE Arduino, vá em **Sketch > Incluir Biblioteca > Gerenciar Bibliotecas** e
 ### Passo 3: Configuração do Broker MQTT
 Instale um broker MQTT em um servidor local ou utilize um serviço gratuito como o **[test.mosquitto.org](https://test.mosquitto.org/)**.
 
-Configure o MyMQTT para se conectar ao broker, inserindo o endereço IP do servidor MQTT, porta (geralmente 1883), e tópicos de publicação e assinatura.
+Configure o **MyMQTT** para se conectar ao broker, inserindo o endereço IP do servidor MQTT, porta (geralmente **1883**), e tópicos de publicação e assinatura.
 
 ## Configuração MQTT
 
@@ -172,19 +174,66 @@ void loop() {
 }
 ```
 
+## Como ver o host para o MQTT
+
+Para visualizar e identificar o **host** (endereço IP ou nome de domínio) que você deve inserir no aplicativo **MyMQTT** para se conectar ao broker MQTT, siga estas orientações de acordo com o ambiente em que o broker está rodando:
+
+### 1. **Broker MQTT rodando localmente (na sua rede local)**
+
+Se o broker MQTT está sendo executado em uma máquina local (como seu próprio computador ou um Raspberry Pi) na mesma rede Wi-Fi que o dispositivo ESP32 e o aplicativo MyMQTT, você precisará encontrar o **endereço IP local** dessa máquina.
+
+#### Como encontrar o IP local:
+- **No Windows**:
+  1. Abra o **Prompt de Comando** (digite `cmd` na barra de pesquisa).
+  2. Digite o comando:
+     ```bash
+     ipconfig
+     ```
+  3. Procure pelo adaptador de rede que está conectado (Wi-Fi ou Ethernet) e encontre o **Endereço IPv4**. O endereço IP terá um formato como `192.168.0.x` ou `192.168.1.x`.
+
+- **No Linux ou Mac**:
+  1. Abra o terminal e digite:
+     ```bash
+     ifconfig
+     ```
+  2. Localize o adaptador de rede (geralmente `wlan0` ou `eth0`), e o **Endereço IP** será algo como `192.168.x.x`.
+
+#### Exemplo:
+Se o endereço IP local da máquina for `192.168.1.50`, esse será o **host** que você deve inserir no MyMQTT e no código do ESP32.
+
+### 2. **Broker MQTT rodando em um servidor online (exemplo: test.mosquitto.org)**
+
+Se você está utilizando um broker MQTT em um servidor remoto ou um broker público, como **Mosquitto**, você pode usar o **nome de domínio** ou o **endereço IP** do serviço.
+
+#### Exemplo de broker público:
+- **test.mosquitto.org**: Este é um broker público gratuito para testes. Nesse caso, o **host** que você deve utilizar no MyMQTT e no código do ESP32 será simplesmente `test.mosquitto.org`.
+
+### 3. **Broker MQTT rodando em um Raspberry Pi ou outro dispositivo IoT na sua rede**
+
+Se você estiver usando um dispositivo como um **Raspberry Pi** para rodar o broker MQTT, você pode encontrar o endereço IP do Raspberry Pi usando os mesmos métodos descritos acima (usando `ifconfig` no Raspberry Pi ou verificando o roteador da sua rede).
+
+### Verificando o endereço IP no seu roteador
+Outra forma de encontrar o IP de um dispositivo na sua rede local é acessando o painel de administração do roteador (geralmente acessível pelo navegador em `192.168.0.1` ou `192.168.1.1`), onde você poderá ver uma lista de dispositivos conectados com seus respectivos endereços IP.
+
+### Conclusão
+
+O **host** é o **endereço IP** ou o **nome de domínio** do servidor onde o broker MQTT está rodando. Você pode obtê-lo conforme o ambiente (local ou remoto) onde o broker está em execução. No **MyMQTT**, você deve inserir esse host junto com a **porta 1883** para se conectar corretamente ao broker.
+
 ## Execução do Projeto
 
-1. Monte o circuito conforme o diagrama.
-2. Faça o upload do código para o ESP32 via Arduino IDE.
-3. Abra o monitor serial para verificar a conexão e o envio dos dados MQTT.
-4. No aplicativo MyMQTT:
-   - Conecte-se ao broker MQTT.
+1. **Monte o circuito** conforme o diagrama.
+2. **Faça o upload do código** para o ESP32 via **Arduino IDE**.
+3. Abra o **monitor serial** para verificar a conexão e o envio dos dados MQTT.
+4. No aplicativo **MyMQTT**:
+   - **Conecte-se** ao broker MQTT.
+   - Insira o **host** (endereço IP ou nome de domínio do broker MQTT).
+   - Especifique a **porta 1883** (padrão para comunicação MQTT).
    - Assine os tópicos `iot/esp32/dht11` e `iot/esp32/ldr` para visualizar os dados enviados pelo ESP32.
-   - Envie comandos de ligar/desligar para o LED assinando o tópico `iot/esp32/led`.
+   - Para **controlar o LED**, envie comandos de ligar/desligar para o tópico `iot/esp32/led` utilizando os comandos MQTT.
 
 ## Resultados
 
-Os dados de temperatura, umidade e luminosidade serão atualizados no aplicativo MyMQTT em tempo real. A partir disso, você poderá monitorar o ambiente de forma remota, visualizar e analisar as leituras dos sensores.
+Os dados de temperatura, umidade e luminosidade serão atualizados no aplicativo **MyMQTT** em tempo real. A partir disso, você poderá monitorar o ambiente de forma remota, visualizar e analisar as leituras dos sensores.
 
 ## Leitura de Tópico MQTT
 
@@ -218,15 +267,14 @@ client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect(Broker, PortaBroker, KeepAlive
-
-Broker)
+client.connect(Broker, PortaBroker, KeepAliveBroker)
 client.loop_forever()
 ```
 
 ## Controle do LED (Liga/Desliga) via MQTT
 
-### Código para Ligar o LED via MQTT:
+### Código para **Ligar o LED** via MQTT:
+
 ```python
 import paho.mqtt.client as mqtt
 import sys
@@ -237,11 +285,13 @@ PortaBroker = 1883
 KeepAliveBroker = 60
 TopicoSubscribe = "/TEF/device001/cmd"
 
+client = mqtt.Client()
 client.connect(Broker, PortaBroker, KeepAliveBroker)
-client.publish(TopicoSubscribe,"device001@on|")
+client.publish(TopicoSubscribe, "device001@on|")
 ```
 
-### Código para Desligar o LED via MQTT:
+### Código para **Desligar o LED** via MQTT:
+
 ```python
 import paho.mqtt.client as mqtt
 import sys
@@ -252,8 +302,9 @@ PortaBroker = 1883
 KeepAliveBroker = 60
 TopicoSubscribe = "/TEF/device001/cmd"
 
+client = mqtt.Client()
 client.connect(Broker, PortaBroker, KeepAliveBroker)
-client.publish(TopicoSubscribe,"device001@off|")
+client.publish(TopicoSubscribe, "device001@off|")
 ```
 
 ## Código para Solicitação de Dados Temporais via Método GET HTTP
@@ -295,7 +346,7 @@ def plotar_grafico(potentiometer_data):
 
     plt.figure(figsize=(12, 6))
     plt.plot(tempos, potentiometer, marker='o', linestyle='-', color='r')
-    plt.title('Gráfico de mediçoes do potênciometro em função do Tempo')
+    plt.title('Gráfico de medições do potenciômetro em função do Tempo')
     plt.xlabel('Tempo')
     plt.ylabel('Valores')
     plt.xticks(rotation=90)
@@ -312,5 +363,10 @@ def plotar_grafico(potentiometer_data):
 - [Biblioteca paho-mqtt para Python](https://pypi.org/project/paho-mqtt/)
 - [MyMQTT App para Android](https://play.google.com/store/apps/details?id=at.tripwire.mqtt.client)
 
-#Integrantes: Caio Rossini, Lucas Serrano, Pedro Henrique Nobre e Thomaz Neves 
-#RM: 555084, 555170, 557454 e 557789
+## Integrantes
+
+- **Caio Rossini** - RM: 555084
+- **Lucas Serrano** - RM: 555170
+- **Pedro Henrique Nobre** - RM: 557454
+- **Thomaz Neves** - RM: 557789
+

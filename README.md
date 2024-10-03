@@ -98,7 +98,7 @@ Você pode configurar outros tópicos conforme necessário.
 
 
 
-#include <WiFi.h>
+```#include <WiFi.h>
 #include <PubSubClient.h>
 #include "DHT.h"
 
@@ -287,8 +287,8 @@ void loop() {
     // Serial.print(hif);
     // Serial.println(" *F");
   }
-} /*****
-*****/
+}```
+
 ## Como ver o host para o MQTT
 
 Para visualizar e identificar o **host** (endereço IP ou nome de domínio) que você deve inserir no aplicativo **MyMQTT** para se conectar ao broker MQTT, siga estas orientações de acordo com o ambiente em que o broker está rodando:

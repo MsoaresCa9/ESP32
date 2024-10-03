@@ -2,7 +2,7 @@
 
 ## Descrição do Projeto
 
-Este projeto demonstra a captura de dados de sensores ambientais, utilizando o sensor de temperatura e umidade DHT11 e o sensor de luminosidade LDR, com um ESP32. Os dados capturados são enviados via protocolo MQTT, e podem ser lidos e controlados por um aplicativo MQTT, como o MyMQTT. 
+Este projeto demonstra a captura de dados de sensores ambientais, utilizando o sensor de temperatura e umidade DHT11 e o sensor de luminosidade LDR, com um ESP32. Os dados capturados são enviados via protocolo MQTT e podem ser lidos e controlados por um aplicativo MQTT, como o MyMQTT.
 
 O objetivo é proporcionar uma solução simples e funcional de monitoramento IoT, com interface amigável e dados em tempo real, acessíveis via dispositivos móveis.
 
@@ -14,7 +14,7 @@ O objetivo é proporcionar uma solução simples e funcional de monitoramento Io
 5. [Código Fonte](#código-fonte)
 6. [Execução do Projeto](#execução-do-projeto)
 7. [Resultados](#resultados)
-8. [Possíveis Melhorias](#possíveis-melhorias)
+8. [Código para Solicitação de Dados Temporais via Método GET HTTP](#codigo-solicitacao-dados)
 9. [Referências](#referências)
 
 ## Pré-requisitos
@@ -178,17 +178,51 @@ void loop() {
 
 Os dados de temperatura, umidade e luminosidade serão atualizados no aplicativo MyMQTT em tempo real. A partir disso, você poderá monitorar o ambiente de forma remota, visualizar e analisar as leituras dos sensores.
 
-## Possíveis Melhorias
+## Código para Solicitação de Dados Temporais via Método GET HTTP
 
-- Implementação de sensores adicionais (por exemplo, sensores de gás ou movimento).
-- Controle de dispositivos por comandos via MQTT (ex.: ligar/desligar luzes).
-- Desenvolvimento de interface gráfica no MyMQTT ou aplicativo personalizado.
+Aqui está o código Python para obter os dados temporais do potenciômetro via uma solicitação HTTP e exibir um gráfico dos dados ao longo do tempo.
 
-## Referências
+```python
+import requests
+import matplotlib.pyplot as plt
+import numpy as np
 
-- [ESP32 MQTT Tutorial](https://randomnerdtutorials.com/esp32-mqtt-publish-subscribe-arduino-ide/)
-- [MyMQTT Android App](https://play.google.com/store/apps/details?id=at.tripwire.mqtt.client)
+# Função para obter os dados de luminosidade a partir da API
+def obter_dados_potentiometer(lastN):
+    url = f"http://{{url}}:8666/STH/v1/contextEntities/type/device/id/urn:ngsi-ld:device:001/attributes/potentiometer?lastN={lastN}"
 
-#Integrantes:
-Caio Soares Rossini, Lucas Serrano, Thomaz Neves e Pedro Henrique Nobre 
-RM: 555084, 555170,557789 e 557454
+    headers = {
+        'fiware-service': 'smart',
+        'fiware-servicepath': '/'
+    }
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        data = response.json()
+        luminosity_data = data['contextResponses'][0]['contextElement']['attributes'][0]['values']
+        return luminosity_data
+    else:
+        print(f"Erro ao obter dados: {response.status_code}")
+        return []
+
+# Função para criar e exibir o gráfico
+def plotar_grafico(potentiometer_data):
+    if not potentiometer_data:
+        print("Nenhum dado disponível para plotar.")
+        return
+
+    potentiometer = [entry['attrValue'] for entry in potentiometer_data]
+    tempos = [entry['recvTime'] for entry in potentiometer_data]
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(tempos, potentiometer, marker='o', linestyle='-', color='r')
+    plt.title('Gráfico de mediçoes do potênciometro em função do Tempo')
+    plt.xlabel('Tempo')
+    plt.ylabel('Valores')
+    plt.xticks(rotation=90)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+# Solicitar ao usuário um valor "lastN" entre 1 e 100
